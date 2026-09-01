@@ -1,7 +1,7 @@
 import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
 import SearchResults from "@/components/SearchResults";
-import DisclaimerBanner from "@/components/DisclaimerBanner";
+import FloatingDisclaimer from "@/components/FloatingDisclaimer";
 
 interface SearchPageProps {
   searchParams: Promise<{ q?: string }> | { q?: string };
@@ -26,9 +26,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <main className="min-h-screen bg-white px-4 py-8 text-gray-900 sm:py-12">
       <div className="mx-auto max-w-4xl">
-        {/* Top Medical Disclaimer - Always visible without scrolling */}
-        <DisclaimerBanner className="mb-6" />
-
         {/* Top Navigation & Search Bar */}
         <div className="mb-8 flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -62,6 +59,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         {/* Search Results Area with TanStack Query Lifecycle */}
         <SearchResults query={query} />
       </div>
+
+      {/* Floating Info Button with Modal Popover */}
+      <FloatingDisclaimer />
     </main>
   );
 }

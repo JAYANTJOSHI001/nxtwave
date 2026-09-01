@@ -7,10 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test tests/ranking.test.ts"
+    "test": "tsx --test tests/parsers.test.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.102.8",
+    "cheerio": "^1.2.0",
     "fuse.js": "^7.5.0",
     "next": "16.3.4",
     "react": "19.2.8",

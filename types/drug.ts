@@ -5,11 +5,20 @@ export interface OpenFdaSubObject {
   substance_name?: string[];
   route?: string[];
   product_type?: string[];
+  dosage_form?: string[];
+  package_ndc?: string[];
+  product_ndc?: string[];
+  spl_set_id?: string[];
+  application_number?: string[];
+  unii?: string[];
+  rxcui?: string[];
 }
 
 export interface DrugLabel {
   id?: string;
   set_id?: string;
+  version?: string;
+  effective_time?: string;
   active_ingredient?: string[];
   purpose?: string[];
   indications_and_usage?: string[];
@@ -21,6 +30,7 @@ export interface DrugLabel {
   pregnancy_or_breast_feeding?: string[];
   keep_out_of_reach_of_children?: string[];
   dosage_and_administration?: string[];
+  dosage_and_administration_table?: string[];
   inactive_ingredient?: string[];
   openfda?: OpenFdaSubObject;
 }

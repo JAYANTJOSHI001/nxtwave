@@ -4,12 +4,70 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { DrugLabel } from "@/types/drug";
 import { formatFieldOrFallback } from "@/lib/format";
-import WarningSection from "@/components/WarningSection";
+import { parseIngredients, formatIngredientSubtitle } from "@/lib/parseIngredients";
+import { parseTextBullets } from "@/lib/parseTextBullets";
+import AtAGlanceCard from "@/components/AtAGlanceCard";
+import IngredientCard from "@/components/IngredientCard";
+import DosageTable from "@/components/DosageTable";
+import WarningAccordion from "@/components/WarningAccordion";
+import SafetySection from "@/components/SafetySection";
+import MetadataSection from "@/components/MetadataSection";
 import FormulationSelector from "@/components/FormulationSelector";
-import DisclaimerBanner from "@/components/DisclaimerBanner";
 
 export interface MedicineDetailViewProps {
   formulations: DrugLabel[];
+}
+
+function toTitleCase(str: string): string {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function extractDosageForm(drug: DrugLabel): string | null {
+  const rawForm = (drug.openfda as Record<string, unknown> | undefined)?.dosage_form;
+  if (Array.isArray(rawForm) && rawForm.length > 0 && typeof rawForm[0] === "string" && rawForm[0].trim()) {
+    return toTitleCase(rawForm[0].split(",")[0].trim());
+  }
+
+  const productType = drug.openfda?.product_type?.[0];
+  if (
+    productType &&
+    !productType.toLowerCase().includes("human otc") &&
+    !productType.toLowerCase().includes("prescription") &&
+    !productType.toLowerCase().includes("drug")
+  ) {
+    return toTitleCase(productType.split(",")[0].trim());
+  }
+
+  const textToScan = [
+    ...(drug.openfda?.brand_name || []),
+    ...(drug.dosage_and_administration || []),
+    ...(drug.purpose || []),
+  ].join(" ").toLowerCase();
+
+  const commonForms = [
+    "tablet", "capsule", "caplet", "chewable", "gel", "liquid",
+    "suspension", "solution", "syrup", "cream", "ointment", "lotion",
+    "injection", "drops", "spray", "patch", "powder", "lozenge"
+  ];
+  for (const form of commonForms) {
+    if (new RegExp(`\\b${form}s?\\b`, "i").test(textToScan)) {
+      return form.charAt(0).toUpperCase() + form.slice(1);
+    }
+  }
+
+  return null;
+}
+
+function extractRoute(drug: DrugLabel): string | null {
+  const rawRoute = drug.openfda?.route?.[0];
+  if (!rawRoute) return null;
+  const first = rawRoute.split(",")[0].trim();
+  return first ? toTitleCase(first) : null;
 }
 
 export default function MedicineDetailView({
@@ -20,248 +78,243 @@ export default function MedicineDetailView({
   const activeDrug = formulations[selectedIndex] || formulations[0];
 
   const brandName = activeDrug.openfda?.brand_name?.[0]?.trim() || "Unknown Brand";
-  const genericName = formatFieldOrFallback(activeDrug.openfda?.generic_name);
-  const manufacturer = formatFieldOrFallback(activeDrug.openfda?.manufacturer_name);
-  const route = activeDrug.openfda?.route?.[0] || "Not specified";
-  const productType = activeDrug.openfda?.product_type?.[0] || "Drug Label";
-  const setId = activeDrug.set_id || activeDrug.id || "N/A";
+  const ingredientSubtitle = formatIngredientSubtitle(activeDrug.active_ingredient);
+  const dosageForm = extractDosageForm(activeDrug);
+  const route = extractRoute(activeDrug);
+  const productType = activeDrug.openfda?.product_type?.[0]?.trim() || null;
 
-  const activeIngredient = formatFieldOrFallback(activeDrug.active_ingredient);
-  const purpose = formatFieldOrFallback(activeDrug.purpose);
-  const dosage = formatFieldOrFallback(activeDrug.dosage_and_administration);
-  const warnings = formatFieldOrFallback(activeDrug.warnings);
-  const indications = formatFieldOrFallback(activeDrug.indications_and_usage);
-  const doNotUse = activeDrug.do_not_use ? formatFieldOrFallback(activeDrug.do_not_use) : null;
-  const stopUse = activeDrug.stop_use ? formatFieldOrFallback(activeDrug.stop_use) : null;
-  const askDoctor =
-    activeDrug.ask_doctor || activeDrug.ask_doctor_or_pharmacist
-      ? formatFieldOrFallback(activeDrug.ask_doctor || activeDrug.ask_doctor_or_pharmacist)
-      : null;
-  const inactiveIngredients = activeDrug.inactive_ingredient
-    ? formatFieldOrFallback(activeDrug.inactive_ingredient)
+  // Purpose extraction for hero and uses
+  const rawPurpose = activeDrug.purpose?.[0]?.trim() || null;
+  const purposeCleaned = rawPurpose
+    ? rawPurpose.replace(/^purpose\s*[:\-]?\s*/i, "").trim()
     : null;
 
-  return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      {/* Top Disclaimer Banner - Persistent above the fold */}
-      <DisclaimerBanner />
+  // Active ingredients parsing for cards
+  const ingredientResult = parseIngredients(activeDrug.active_ingredient);
 
-      {/* Navigation Breadcrumbs */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-        <Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400">
+  // Uses / indications parsing
+  const indicationsBullets = parseTextBullets(activeDrug.indications_and_usage);
+  const hasIndications = Boolean(
+    indicationsBullets.bullets.length > 0 || indicationsBullets.fallbackText.length > 0
+  );
+
+  return (
+    <div className="mx-auto max-w-4xl space-y-8 pb-16">
+      {/* 1. Breadcrumb: Home / Medicines / {brand name} */}
+      <nav
+        aria-label="Breadcrumb"
+        className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400"
+      >
+        <Link href="/" className="transition-colors hover:text-blue-600 dark:hover:text-blue-400">
           Home
         </Link>
-        <span>/</span>
-        <Link
-          href={`/search?q=${encodeURIComponent(brandName)}`}
-          className="hover:text-blue-600 dark:hover:text-blue-400"
-        >
-          Search
+        <span aria-hidden="true">/</span>
+        <Link href="/search" className="transition-colors hover:text-blue-600 dark:hover:text-blue-400">
+          Medicines
         </Link>
-        <span>/</span>
-        <span className="font-medium text-gray-800 dark:text-gray-200 truncate">
+        <span aria-hidden="true">/</span>
+        <span className="truncate font-medium text-gray-900 dark:text-gray-200">
           {brandName}
         </span>
       </nav>
 
-      {/* Formulation Selector (Interactive without full page reload) */}
-      <FormulationSelector
-        formulations={formulations}
-        selectedIndex={selectedIndex}
-        onSelect={setSelectedIndex}
-      />
+      {/* 2. Hero Identity Block */}
+      <header
+        id="overview"
+        className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8"
+      >
+        <div className="space-y-3">
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-950 dark:text-white sm:text-4xl">
+            {brandName}
+          </h1>
 
-      {/* Header Hero Card */}
-      <header className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <span className="inline-block rounded-full bg-blue-100 px-3 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-950 dark:text-blue-300">
-              {productType}
-            </span>
-            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-              {brandName}
-            </h1>
-          </div>
-
-          {route !== "Not specified" && (
-            <span className="rounded-lg bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-              Route: {route}
-            </span>
+          {ingredientSubtitle && (
+            <p className="text-lg font-medium text-gray-600 dark:text-gray-300">
+              {ingredientSubtitle}
+            </p>
           )}
-        </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 border-t border-gray-100 pt-6 text-sm dark:border-gray-800 sm:grid-cols-2">
-          <div>
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-              Generic Name
-            </span>
-            <p className="mt-0.5 font-semibold text-gray-800 dark:text-gray-200">
-              {genericName}
-            </p>
+          {/* Badges for dosage form / route / product type */}
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            {dosageForm && (
+              <span className="rounded-lg border border-red-200 bg-red-50/60 px-2.5 py-1 text-xs font-semibold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
+                {dosageForm}
+              </span>
+            )}
+            {route && (
+              <span className="rounded-lg border border-blue-200 bg-blue-50/60 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300">
+                {route}
+              </span>
+            )}
+            {productType && (
+              <span className="rounded-lg border border-gray-200 bg-gray-100/80 px-2.5 py-1 text-xs font-medium text-gray-700 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                {productType}
+              </span>
+            )}
           </div>
-          <div>
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-              Manufacturer
-            </span>
-            <p className="mt-0.5 font-semibold text-gray-800 dark:text-gray-200">
-              {manufacturer}
-            </p>
-          </div>
+
+          {/* Formulation Selector (inside hero directly under badges) */}
+          {formulations.length > 1 && (
+            <div className="pt-3">
+              <FormulationSelector
+                formulations={formulations}
+                selectedIndex={selectedIndex}
+                onSelect={setSelectedIndex}
+              />
+            </div>
+          )}
+
+          {/* Purpose as a one-line summary */}
+          {purposeCleaned && (
+            <div className="pt-3 border-t border-gray-100 dark:border-gray-800 text-sm">
+              <span className="font-semibold text-gray-900 dark:text-gray-100">Purpose: </span>
+              <span className="text-gray-700 dark:text-gray-300">{purposeCleaned}</span>
+            </div>
+          )}
         </div>
       </header>
 
-      {/* Section 1: Warnings & Precautions (Prioritized at top for health safety) */}
-      <WarningSection
-        warnings={warnings}
-        doNotUse={doNotUse}
-        stopUse={stopUse}
-        askDoctor={askDoctor}
-      />
-
-      {/* Section 2: Dosage & Administration */}
-      <section
-        aria-labelledby="dosage-heading"
-        className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8"
+      {/* 3. Visible Source Disclaimer directly under hero, above the fold */}
+      <aside
+        role="note"
+        aria-label="Source and Regional Disclaimer"
+        className="rounded-xl border border-amber-200/90 bg-amber-50/60 p-4 text-xs leading-relaxed text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200"
       >
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
-            <svg
-              className="h-5 w-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </div>
-          <h2
-            id="dosage-heading"
-            className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100"
+        <div className="flex items-start gap-3">
+          <svg
+            className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
           >
-            Dosage &amp; Administration
-          </h2>
-        </div>
-
-        <div className="mt-4 text-sm leading-relaxed text-gray-700 dark:text-gray-300 whitespace-pre-line">
-          {dosage}
-        </div>
-      </section>
-
-      {/* Section 3: Active Ingredients & Purpose */}
-      <section
-        aria-labelledby="ingredients-heading"
-        className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8"
-      >
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400">
-            <svg
-              className="h-5 w-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.942A4.5 4.5 0 0115.91 17H8.09a4.5 4.5 0 01-2.32-.658L4.2 15.4"
-              />
-            </svg>
-          </div>
-          <h2
-            id="ingredients-heading"
-            className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100"
-          >
-            Active Ingredients &amp; Purpose
-          </h2>
-        </div>
-
-        <div className="mt-4 space-y-4 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-          <div>
-            <span className="font-semibold text-gray-900 dark:text-gray-100">
-              Active Ingredient:
-            </span>{" "}
-            <span className="whitespace-pre-line">{activeIngredient}</span>
-          </div>
-
-          <div>
-            <span className="font-semibold text-gray-900 dark:text-gray-100">
-              Purpose:
-            </span>{" "}
-            <span className="whitespace-pre-line">{purpose}</span>
+            <path
+              fillRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <div className="space-y-1">
+            <p className="font-semibold text-amber-900 dark:text-amber-300">
+              Source: US FDA drug label
+            </p>
+            <p className="text-amber-800/90 dark:text-amber-200/90">
+              This label data is indexed from the United States Food and Drug Administration (FDA). Medicine availability, brand names, formulations, approved indications, and labeling may differ in India and other countries. Always verify with local regulatory labels and consult a healthcare professional.
+            </p>
           </div>
         </div>
-      </section>
+      </aside>
 
-      {/* Section 4: Indications & Usage */}
-      <section
-        aria-labelledby="indications-heading"
-        className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8"
-      >
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400">
-            <svg
-              className="h-5 w-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"
-              />
-            </svg>
+      {/* 4. "At a glance" Card */}
+      <AtAGlanceCard drug={activeDrug} />
+
+      {/* 5. Active Ingredients */}
+      <section id="active-ingredients" aria-labelledby="active-ingredients-heading" className="space-y-4">
+        <h2 id="active-ingredients-heading" className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+          Active ingredients
+        </h2>
+
+        {ingredientResult.isParsed && ingredientResult.ingredients.length > 0 ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {ingredientResult.ingredients.map((ing, idx) => (
+              <IngredientCard key={idx} ingredient={ing} />
+            ))}
           </div>
-          <h2
-            id="indications-heading"
-            className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100"
-          >
-            Indications &amp; Usage
-          </h2>
-        </div>
-
-        <div className="mt-4 text-sm leading-relaxed text-gray-700 dark:text-gray-300 whitespace-pre-line">
-          {indications}
-        </div>
-      </section>
-
-      {/* Section 5: Inactive Ingredients (if available) */}
-      {inactiveIngredients && (
-        <section
-          aria-labelledby="inactive-heading"
-          className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8"
-        >
-          <h2
-            id="inactive-heading"
-            className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100"
-          >
-            Inactive Ingredients
-          </h2>
-          <p className="mt-2 text-xs leading-relaxed text-gray-600 dark:text-gray-400 whitespace-pre-line">
-            {inactiveIngredients}
+        ) : ingredientResult.rawText ? (
+          <div className="rounded-xl border border-gray-200 bg-white p-5 text-sm leading-relaxed text-gray-800 shadow-2xs dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200 whitespace-pre-line">
+            {ingredientResult.rawText}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500 italic dark:text-gray-400">
+            Information not available in this label
           </p>
-        </section>
-      )}
+        )}
+      </section>
 
-      {/* Footer Meta */}
-      <footer className="border-t border-gray-200 pt-6 text-center text-xs text-gray-400 dark:border-gray-800 dark:text-gray-500">
-        <p>US FDA OpenFDA Record Identifier: {setId}</p>
-        <div className="mt-2">
+      {/* 6. Uses */}
+      <section id="uses" aria-labelledby="uses-heading" className="space-y-3 pt-2">
+        <h2 id="uses-heading" className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+          Uses &amp; Indications
+        </h2>
+
+        {purposeCleaned && (
+          <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
+            Purpose: {purposeCleaned}
+          </p>
+        )}
+
+        {hasIndications ? (
+          indicationsBullets.isBulleted ? (
+            <div className="space-y-2 text-sm text-gray-800 dark:text-gray-200">
+              {indicationsBullets.intro && (
+                <p className="font-medium text-gray-900 dark:text-gray-100">
+                  {indicationsBullets.intro}
+                </p>
+              )}
+              <ul className="list-disc space-y-1.5 pl-5 text-gray-700 dark:text-gray-300">
+                {indicationsBullets.bullets.map((bullet, idx) => (
+                  <li key={idx}>{bullet}</li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 whitespace-pre-line">
+              {indicationsBullets.fallbackText}
+            </p>
+          )
+        ) : !purposeCleaned ? (
+          <p className="text-sm text-gray-500 italic dark:text-gray-400">
+            Information not available in this label
+          </p>
+        ) : null}
+      </section>
+
+      {/* 7. Dosage & Directions */}
+      <section id="dosage-directions" aria-labelledby="dosage-directions-heading" className="space-y-4 pt-2">
+        <h2 id="dosage-directions-heading" className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+          Dosage &amp; directions
+        </h2>
+
+        <DosageTable
+          tableHtml={activeDrug.dosage_and_administration_table}
+          plainText={activeDrug.dosage_and_administration}
+        />
+      </section>
+
+      {/* 8. Important Safety Information (Warning Accordion) */}
+      <section id="warnings" aria-labelledby="warnings-heading" className="space-y-4 pt-2">
+        <div className="flex items-center gap-2">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-700 dark:bg-red-950 dark:text-red-400">
+            !
+          </span>
+          <h2 id="warnings-heading" className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+            Important safety information
+          </h2>
+        </div>
+
+        <WarningAccordion warnings={activeDrug.warnings} />
+      </section>
+
+      {/* 9. Structured Safety Sections */}
+      <section id="safety-precautions" aria-labelledby="safety-precautions-heading" className="space-y-4 pt-2">
+        <h2 id="safety-precautions-heading" className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+          Safety precautions
+        </h2>
+
+        <SafetySection drug={activeDrug} />
+      </section>
+
+      {/* 10. Technical / Source Metadata (Collapsed by default) */}
+      <MetadataSection drug={activeDrug} />
+
+      {/* Footer Navigation */}
+      <footer className="pt-8 text-center text-xs text-gray-400 dark:text-gray-500">
+        <p>OpenFDA Record Reference: {activeDrug.set_id || activeDrug.id || "N/A"}</p>
+        <div className="mt-3">
           <Link
-            href="/"
-            className="text-blue-600 hover:underline dark:text-blue-400"
+            href="/search"
+            className="font-medium text-blue-600 hover:underline dark:text-blue-400"
           >
-            Search Another Medicine
+            ← Search another medicine
           </Link>
         </div>
       </footer>

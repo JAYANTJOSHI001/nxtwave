@@ -30,8 +30,8 @@ export default function SearchResults({ query }: SearchResultsProps) {
   // STATE 1: Empty Query
   if (!trimmedQuery) {
     return (
-      <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-12 text-center shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
+      <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-12 text-center shadow-sm">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
           <svg
             className="h-6 w-6"
             fill="none"
@@ -47,10 +47,10 @@ export default function SearchResults({ query }: SearchResultsProps) {
             />
           </svg>
         </div>
-        <h2 className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <h2 className="mt-4 text-lg font-semibold text-gray-900">
           Enter a Medicine Name
         </h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-sm text-gray-500">
           Type a brand name in the search bar above (e.g. Advil, Tylenol, Amoxicillin).
         </p>
       </div>
@@ -61,19 +61,32 @@ export default function SearchResults({ query }: SearchResultsProps) {
   if (isLoading || (isFetching && !results)) {
     return (
       <div className="space-y-4" role="status" aria-label="Loading search results">
-        <div className="h-6 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="h-6 w-48 animate-pulse rounded bg-gray-200" />
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="animate-pulse rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+              className="animate-pulse rounded-2xl border border-gray-200 bg-white p-6 shadow-sm h-64 flex flex-col justify-between"
             >
-              <div className="h-5 w-3/5 rounded bg-gray-200 dark:bg-gray-800" />
-              <div className="mt-4 space-y-2.5">
-                <div className="h-3 w-full rounded bg-gray-100 dark:bg-gray-800" />
-                <div className="h-3 w-4/5 rounded bg-gray-100 dark:bg-gray-800" />
-                <div className="h-3 w-2/3 rounded bg-gray-100 dark:bg-gray-800" />
+              <div className="flex justify-between items-center">
+                <div className="h-6 w-1/2 rounded bg-gray-200" />
+                <div className="h-6 w-16 rounded-lg bg-gray-100" />
               </div>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <div className="h-4 w-20 rounded bg-gray-100" />
+                  <div className="h-4 w-32 rounded bg-gray-200" />
+                </div>
+                <div className="flex justify-between">
+                  <div className="h-4 w-24 rounded bg-gray-100" />
+                  <div className="h-4 w-40 rounded bg-gray-200" />
+                </div>
+                <div className="flex justify-between">
+                  <div className="h-4 w-28 rounded bg-gray-100" />
+                  <div className="h-4 w-36 rounded bg-gray-200" />
+                </div>
+              </div>
+              <div className="h-10 w-full rounded-full bg-gray-100" />
             </div>
           ))}
         </div>
@@ -106,21 +119,12 @@ export default function SearchResults({ query }: SearchResultsProps) {
       ? error.message
       : "An unexpected error occurred while communicating with openFDA.";
 
-    const borderColor = isTimeout
-      ? "border-orange-200 dark:border-orange-900/50"
-      : "border-red-200 dark:border-red-900/50";
-
-    const bgColor = isTimeout
-      ? "bg-orange-50 text-orange-950 dark:bg-orange-950/30 dark:text-orange-200"
-      : "bg-red-50 text-red-950 dark:bg-red-950/30 dark:text-red-200";
-
-    const iconBg = isTimeout
-      ? "bg-orange-100 text-orange-600 dark:bg-orange-900/60 dark:text-orange-400"
-      : "bg-red-100 text-red-600 dark:bg-red-900/60 dark:text-red-400";
-
+    const borderColor = isTimeout ? "border-orange-200" : "border-red-200";
+    const bgColor = isTimeout ? "bg-orange-50 text-orange-950" : "bg-red-50 text-red-950";
+    const iconBg = isTimeout ? "bg-orange-100 text-orange-600" : "bg-red-100 text-red-600";
     const buttonColor = isTimeout
-      ? "bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
-      : "bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600";
+      ? "bg-orange-600 hover:bg-orange-700"
+      : "bg-red-600 hover:bg-red-700";
 
     return (
       <div
@@ -164,8 +168,8 @@ export default function SearchResults({ query }: SearchResultsProps) {
   // STATE 4: Zero Results Found (Distinct Empty State)
   if (!results || results.length === 0) {
     return (
-      <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-12">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+      <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm sm:p-12">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-500">
           <svg
             className="h-7 w-7"
             fill="none"
@@ -182,19 +186,19 @@ export default function SearchResults({ query }: SearchResultsProps) {
           </svg>
         </div>
 
-        <h2 className="mt-4 text-xl font-bold text-gray-900 dark:text-gray-100">
+        <h2 className="mt-4 text-xl font-bold text-gray-900">
           No matching label found for &ldquo;{trimmedQuery}&rdquo;
         </h2>
 
-        <p className="mx-auto mt-2 max-w-lg text-sm text-gray-600 dark:text-gray-400">
+        <p className="mx-auto mt-2 max-w-lg text-sm text-gray-600">
           We couldn&apos;t find an official US FDA label under this brand name.
         </p>
 
         {/* Helpful Search Tip Box */}
-        <div className="mx-auto mt-6 max-w-lg rounded-xl border border-blue-100 bg-blue-50/70 p-4 text-left dark:border-blue-900/40 dark:bg-blue-950/30">
+        <div className="mx-auto mt-6 max-w-lg rounded-xl border border-blue-100 bg-blue-50/70 p-4 text-left">
           <div className="flex items-start gap-2.5">
             <svg
-              className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400"
+              className="mt-0.5 h-4 w-4 shrink-0 text-blue-600"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={2}
@@ -207,9 +211,9 @@ export default function SearchResults({ query }: SearchResultsProps) {
                 d="M12 18v-5.25m0 0a2.25 2.25 0 10-2.25-2.25 2.25 2.25 0 002.25 2.25zM12 6v.75m0 0a.75.75 0 100-1.5.75.75 0 000 1.5z"
               />
             </svg>
-            <div className="text-xs text-blue-900 dark:text-blue-200">
+            <div className="text-xs text-blue-900">
               <p className="font-semibold">Search Tip: Try searching by generic drug name</p>
-              <p className="mt-1 leading-relaxed text-blue-800/90 dark:text-blue-300/90">
+              <p className="mt-1 leading-relaxed text-blue-800/90">
                 Many manufacturers register formulations primarily by their active generic
                 ingredient (e.g. <strong>Ibuprofen</strong> instead of <strong>Advil</strong>, or{" "}
                 <strong>Acetaminophen</strong> instead of <strong>Tylenol</strong>).
@@ -220,7 +224,7 @@ export default function SearchResults({ query }: SearchResultsProps) {
 
         {/* Suggestion Links */}
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+          <span className="text-xs font-medium text-gray-500">
             Try searching:
           </span>
           {[
@@ -232,7 +236,7 @@ export default function SearchResults({ query }: SearchResultsProps) {
             <Link
               key={item.q}
               href={`/search?q=${encodeURIComponent(item.q)}`}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50"
             >
               {item.name}
             </Link>
@@ -245,22 +249,22 @@ export default function SearchResults({ query }: SearchResultsProps) {
   // STATE 5: Success Results (Disambiguation View)
   return (
     <div>
-      <div className="mb-6 border-b border-gray-200 pb-4 dark:border-gray-800">
+      <div className="mb-6 border-b border-gray-200 pb-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
             Results for &ldquo;{trimmedQuery}&rdquo;
           </h1>
-          <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+          <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
             {results.length} formulation{results.length === 1 ? "" : "s"} found
           </span>
         </div>
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-xs text-gray-500">
           Multiple records may exist for different formulations, strengths, or
           manufacturers of this brand. Select a specific label below to review its details.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         {results.map((drug, index) => {
           const uniqueKey =
             drug.set_id ||

@@ -1,4 +1,3 @@
-import Navbar from "@/components/Navbar";
 import SearchBar from "@/components/SearchBar";
 import PopularSearches from "@/components/PopularSearches";
 import FloatingDisclaimer from "@/components/FloatingDisclaimer";
@@ -13,9 +12,6 @@ export const metadata = {
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-white text-gray-900">
-      {/* Top Navigation Bar */}
-      <Navbar />
-
       {/* Hero Section with Dotted Grid Background fading to 0 opacity at center */}
       <section className="relative flex min-h-[80vh] flex-col items-center justify-center overflow-hidden px-4 py-16 sm:py-24 md:py-32">
         {/* Background Dot Layer with Center-to-Edge Radial Mask */}
