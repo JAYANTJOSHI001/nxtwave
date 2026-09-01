@@ -146,27 +146,27 @@ export async function searchMedicines(query: string): Promise<DrugLabel[]> {
   );
 }
 
-export async function getMedicineBySlug(
+export async function getMedicineFormulationsBySlug(
   slug: string
-): Promise<DrugLabel | null> {
+): Promise<DrugLabel[]> {
   if (!slug || !slug.trim()) {
-    return null;
+    return [];
   }
 
   const { setId } = decodeMedicineSlug(slug);
   if (!setId) {
-    return null;
+    return [];
   }
 
-  // Search by openfda.spl_set_id, root set_id, or direct id
+  // Search by openfda.spl_set_id, root set_id, or direct id (up to 10 matching formulations)
   const searchParam = `(openfda.spl_set_id:"${setId}"+OR+set_id:"${setId}"+OR+id:"${setId}")`;
-  const url = `${OPENFDA_BASE_URL}?search=${encodeURIComponent(searchParam)}&limit=1`;
+  const url = `${OPENFDA_BASE_URL}?search=${encodeURIComponent(searchParam)}&limit=10`;
 
   const response = await fetchOpenFda(url);
 
   if (response.ok) {
     const data: OpenFdaResponse<DrugLabel> = await response.json();
-    return data.results?.[0] ?? null;
+    return data.results ?? [];
   }
 
   let errorData: OpenFdaResponse | undefined;
@@ -178,7 +178,7 @@ export async function getMedicineBySlug(
 
   // Record not found in openFDA
   if (response.status === 404 && errorData?.error?.code === "NOT_FOUND") {
-    return null;
+    return [];
   }
 
   const errorMessage =
@@ -190,4 +190,11 @@ export async function getMedicineBySlug(
     response.status,
     errorData?.error?.code
   );
+}
+
+export async function getMedicineBySlug(
+  slug: string
+): Promise<DrugLabel | null> {
+  const formulations = await getMedicineFormulationsBySlug(slug);
+  return formulations.length > 0 ? formulations[0] : null;
 }

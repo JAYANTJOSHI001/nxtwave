@@ -22,18 +22,19 @@ function SearchBarInner({
   const searchParams = useSearchParams();
   const urlQuery = searchParams ? searchParams.get("q") || "" : "";
 
+  const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery);
   const [query, setQuery] = useState(initialQuery || urlQuery);
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const lastNavigatedQueryRef = useRef(initialQuery || urlQuery);
 
-  // Sync state if URL search query changes
-  useEffect(() => {
-    if (urlQuery && urlQuery !== query) {
+  // Sync state if URL search query changes (React docs recommended pattern for syncing state with props/URL)
+  if (urlQuery !== prevUrlQuery) {
+    setPrevUrlQuery(urlQuery);
+    if (urlQuery !== query) {
       setQuery(urlQuery);
       setDebouncedQuery(urlQuery);
-      lastNavigatedQueryRef.current = urlQuery;
     }
-  }, [urlQuery]);
+  }
 
   // Debounce input by 400ms
   useEffect(() => {
