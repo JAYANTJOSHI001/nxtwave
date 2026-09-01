@@ -94,7 +94,7 @@ export default async function MedicineDetailPage({
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-8 text-gray-900 dark:bg-gray-950 dark:text-gray-100 sm:py-12">
+    <main className="min-h-screen bg-white px-4 py-8 text-gray-900 sm:py-12">
       {/* JSON-LD for SEO injected on the server */}
       <script
         type="application/ld+json"

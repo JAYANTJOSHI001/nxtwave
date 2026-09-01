@@ -21,13 +21,13 @@ export default function DrugCard({ drug }: DrugCardProps) {
   const route = formatFieldOrFallback(drug.openfda?.route, "Not specified");
 
   return (
-    <div className="flex flex-col justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-150 hover:border-blue-500 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:border-blue-500">
+    <div className="flex flex-col justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-150 hover:border-blue-500 hover:shadow-md">
       <div>
         {/* Brand Name Title */}
-        <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100">
+        <h2 className="text-lg font-bold tracking-tight text-gray-900">
           <Link
             href={`/medicine/${slug}`}
-            className="transition hover:text-blue-600 dark:hover:text-blue-400"
+            className="transition hover:text-blue-600"
           >
             {brandName}
           </Link>
@@ -36,14 +36,14 @@ export default function DrugCard({ drug }: DrugCardProps) {
         {/* Structured Info Rows */}
         <div className="mt-3 space-y-1.5 text-xs">
           <div className="flex items-baseline justify-between gap-2">
-            <span className="font-medium text-gray-500 dark:text-gray-400">
+            <span className="font-medium text-gray-500">
               Generic Name:
             </span>
             <span
               className={`text-right font-medium ${
                 genericName === "Not specified"
-                  ? "italic text-gray-400 dark:text-gray-500"
-                  : "text-gray-800 dark:text-gray-200"
+                  ? "italic text-gray-400"
+                  : "text-gray-800"
               }`}
             >
               {genericName}
@@ -51,14 +51,14 @@ export default function DrugCard({ drug }: DrugCardProps) {
           </div>
 
           <div className="flex items-baseline justify-between gap-2">
-            <span className="font-medium text-gray-500 dark:text-gray-400">
+            <span className="font-medium text-gray-500">
               Manufacturer:
             </span>
             <span
               className={`text-right ${
                 manufacturer === "Not specified"
-                  ? "italic text-gray-400 dark:text-gray-500"
-                  : "text-gray-700 dark:text-gray-300"
+                  ? "italic text-gray-400"
+                  : "text-gray-700"
               }`}
             >
               {manufacturer}
@@ -66,14 +66,14 @@ export default function DrugCard({ drug }: DrugCardProps) {
           </div>
 
           <div className="flex items-baseline justify-between gap-2">
-            <span className="font-medium text-gray-500 dark:text-gray-400">
+            <span className="font-medium text-gray-500">
               Route:
             </span>
             <span
               className={`text-right ${
                 route === "Not specified"
-                  ? "italic text-gray-400 dark:text-gray-500"
-                  : "inline-block rounded bg-blue-50 px-2 py-0.5 font-medium text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
+                  ? "italic text-gray-400"
+                  : "inline-block rounded bg-blue-50 px-2 py-0.5 font-medium text-blue-700"
               }`}
             >
               {route}
@@ -83,13 +83,13 @@ export default function DrugCard({ drug }: DrugCardProps) {
       </div>
 
       {/* Card Footer Link */}
-      <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3 dark:border-gray-800">
-        <span className="text-[11px] text-gray-400 dark:text-gray-500">
+      <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">
+        <span className="text-[11px] text-gray-400">
           ID: {setId.length > 14 ? `${setId.slice(0, 14)}...` : setId}
         </span>
         <Link
           href={`/medicine/${slug}`}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 transition hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 transition hover:text-blue-700"
         >
           View Details
           <svg

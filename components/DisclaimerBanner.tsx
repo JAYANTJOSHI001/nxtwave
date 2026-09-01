@@ -9,10 +9,10 @@ export default function DisclaimerBanner({ className = "" }: DisclaimerBannerPro
     <aside
       role="note"
       aria-label="Medical and Regulatory Disclaimer"
-      className={`relative rounded-xl border border-amber-300/80 bg-gradient-to-r from-amber-50 via-yellow-50/80 to-amber-50 p-4 text-xs leading-relaxed text-amber-950 shadow-sm dark:border-amber-800/60 dark:from-amber-950/50 dark:via-yellow-950/30 dark:to-amber-950/40 dark:text-amber-200 ${className}`}
+      className={`relative rounded-xl border border-amber-300/80 bg-gradient-to-r from-amber-50 via-yellow-50/80 to-amber-50 p-4 text-xs leading-relaxed text-amber-950 shadow-sm ${className}`}
     >
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-200/80 text-amber-800 dark:bg-amber-900/80 dark:text-amber-300">
+        <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-200/80 text-amber-800">
           <svg
             className="h-3.5 w-3.5"
             viewBox="0 0 20 20"
@@ -28,19 +28,19 @@ export default function DisclaimerBanner({ className = "" }: DisclaimerBannerPro
         </div>
         <div className="flex-1">
           <p>
-            <strong className="font-semibold text-amber-900 dark:text-amber-100">
+            <strong className="font-semibold text-amber-900">
               Important Medical &amp; Regulatory Disclaimer:
             </strong>{" "}
             This drug label information is sourced directly from the{" "}
-            <strong className="font-semibold text-amber-900 dark:text-amber-100">
+            <strong className="font-semibold text-amber-900">
               US FDA dataset via openFDA
             </strong>
             . This service is for informational and educational purposes only and does{" "}
-            <strong className="font-semibold text-amber-900 dark:text-amber-100">
+            <strong className="font-semibold text-amber-900">
               not constitute medical advice
             </strong>
             , diagnosis, or personalized treatment recommendations. Always consult a licensed{" "}
-            <strong className="font-semibold text-amber-900 dark:text-amber-100">
+            <strong className="font-semibold text-amber-900">
               physician or certified pharmacist
             </strong>{" "}
             before taking, modifying, or discontinuing any medication.

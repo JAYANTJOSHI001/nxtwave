@@ -13,8 +13,8 @@ export async function generateMetadata({ searchParams }: SearchPageProps) {
 
   return {
     title: query
-      ? `Search Results for "${query}" — Medicine Directory`
-      : "Search Medicines — Medicine Directory",
+      ? `Search Results for "${query}" — nxtwave`
+      : "Search Medicines — nxtwave",
     description: `Browse US FDA drug label results and formulations for "${query}".`,
   };
 }
@@ -24,7 +24,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const query = resolvedParams.q?.trim() || "";
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-8 text-gray-900 dark:bg-gray-950 dark:text-gray-100 sm:py-12">
+    <main className="min-h-screen bg-white px-4 py-8 text-gray-900 sm:py-12">
       <div className="mx-auto max-w-4xl">
         {/* Top Medical Disclaimer - Always visible without scrolling */}
         <DisclaimerBanner className="mb-6" />
@@ -34,7 +34,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <div className="flex items-center justify-between">
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:underline"
             >
               <svg
                 className="h-4 w-4"
