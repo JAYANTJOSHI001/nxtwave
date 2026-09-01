@@ -102,25 +102,25 @@ export default function AtAGlanceCard({ drug }: AtAGlanceCardProps) {
   }
 
   return (
-    <section aria-labelledby="at-a-glance-heading" className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-      <div className="flex items-center gap-2 pb-3 border-b border-gray-100 dark:border-gray-800">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
+    <section aria-labelledby="at-a-glance-heading" className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
           </svg>
         </div>
-        <h2 id="at-a-glance-heading" className="text-base font-bold tracking-tight text-gray-900 dark:text-gray-100">
+        <h2 id="at-a-glance-heading" className="text-base font-bold tracking-tight text-gray-900">
           At a glance
         </h2>
       </div>
 
-      <dl className="mt-4 divide-y divide-gray-100 text-sm dark:divide-gray-800">
+      <dl className="mt-4 divide-y divide-gray-100 text-sm">
         {rows.map((row) => (
           <div key={row.label} className="grid grid-cols-1 py-2.5 sm:grid-cols-3 sm:gap-4">
-            <dt className="text-xs font-medium text-gray-500 dark:text-gray-400 sm:text-sm">
+            <dt className="text-xs font-medium text-gray-500 sm:text-sm">
               {row.label}
             </dt>
-            <dd className="mt-0.5 font-medium text-gray-900 dark:text-gray-100 sm:col-span-2 sm:mt-0">
+            <dd className="mt-0.5 font-medium text-gray-900 sm:col-span-2 sm:mt-0">
               {row.value}
             </dd>
           </div>
